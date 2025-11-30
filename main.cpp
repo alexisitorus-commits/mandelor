@@ -1,49 +1,107 @@
-#ifndef COMPLEXPLANE_H
-#define COMPLEXPLANE_H
-
 #include <SFML/Graphics.hpp>
-#include <complex>
+#include "ComplexPlane.h"
+#include <iostream>
 
-const unsigned int MAX_ITER = 64;
-const float BASE_WIDTH = 4.0;
-const float BASE_HEIGHT = 4.0;
-const float BASE_ZOOM = 0.5;
 
-enum class State
+
+
+using namespace sf;
+using namespace std;
+
+
+int main()
 {
-	CALCULATING,
-	DISPLAYING
-};
 
-class ComplexPlane : public sf::Drawable
-{
-public:
-	ComplexPlane(int pixelWidth, int pixelHeight);
+	int pixelWidth = VideoMode::getDesktopMode().width;
+	int pixelHeight = VideoMode::getDesktopMode().height;
 
-	void zoomIn();
-	void zoomOut();
-	void setCenter(sf::Vector2i mousePixel);
-	void setMouseLocation(sf::Vector2i mousePixel);
-	void updateRender();
-	void loadText(sf::Text& text);
-
-private:
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-
-	size_t countIterations(sf::Vector2f coord);
-	void iterationsToRGB(size_t count, sf::Uint8& r, sf::Uint8& g, sf::Uint8& b);
-	sf::Vector2f mapPixelToCoords(sf::Vector2i mousePixel);
-
-	sf::VertexArray m_vArray;
-	int m_pixelWidth, m_pixelHeight;
-
-	float m_aspectRatio;
-	sf::Vector2f m_plane_center;
-	sf::Vector2f m_plane_size;
-	sf::Vector2f m_mouseLocation;
-	int m_zoomCount;
-	State m_state;
-};
+	RenderWindow window(VideoMode(pixelWidth, pixelHeight), "Mandelbrot");
+	ComplexPlane plane(pixelWidth, pixelHeight);
 
 
-#endif 
+
+	//font appear NOW
+	sf::Font font;
+	if (!font.loadFromFile("arial.ttf"))
+	{
+		cout << "font isn't real sorry.";
+	}
+
+	sf::Text text;
+	text.setFont(font);
+	text.setString("filler");
+	text.setCharacterSize(30);
+	text.setFillColor(sf::Color::White);
+	text.setStyle(sf::Text::Bold);
+	text.setPosition(20, 20);
+
+	while (window.isOpen())
+	{
+		Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == Event::Closed)
+			{
+				// Quit the game when the window is closed
+				window.close();
+			}
+			if (event.type == sf::Event::MouseButtonPressed)
+			{
+				Vector2i mouse(event.mouseMove.x, event.mouseMove.y);
+
+				if (event.mouseButton.button == sf::Mouse::Right)
+				{
+					//Right click will zoomOut and call setCenter on the 
+		//ComplexPlane object with the (x,y) pixel location of the mouse click
+					plane.zoomOut();
+					plane.setCenter(mouse);
+
+
+				}
+				if (event.mouseButton.button == sf::Mouse::Left)
+				{
+					//Left click will zoomIn and call setCenter on the 
+//ComplexPlane object with the (x,y) pixel location of the //mouse click
+					plane.zoomIn();
+					plane.setCenter(mouse);
+
+				}
+
+			}
+
+			if (event.type == sf::Event::MouseMoved)
+			{
+				//Call setMouseLocation on the ComplexPlane object to store the 
+		//(x,y) pixel location of the mouse click
+				Vector2i mouse(event.mouseButton.x, event.mouseButton.y);
+				plane.setMouseLocation(mouse);
+				//This will be used later to display the mouse coordinates as it moves
+			}
+		}
+
+
+		if (Keyboard::isKeyPressed(Keyboard::Escape))
+
+		{
+
+			window.close();
+
+		}
+
+
+
+
+		///Update
+		plane.updateRender();
+		plane.loadText(text);
+
+
+		///Draw
+
+		window.clear();
+		window.draw(plane);
+		window.draw(text);
+		window.display();
+
+	}
+}
