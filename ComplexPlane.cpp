@@ -1,8 +1,10 @@
 ﻿#include "ComplexPlane.h"
 #include <sstream>
-#include <cmath> 
+#include <cmath>
+#include <complex>
 
 using namespace sf;
+
 ComplexPlane::ComplexPlane(int pixelWidth, int pixelHeight)
 {
     m_pixelWidth = pixelWidth;
@@ -36,12 +38,11 @@ void ComplexPlane::zoomIn()
 
 void ComplexPlane::zoomOut()
 {
-    m_zoomCount - -;
+    m_zoomCount--;
     m_plane_size.x = BASE_WIDTH * pow(BASE_ZOOM, m_zoomCount);
-    m_plane_size.y = BASE_HEIGHT * m_aspectRation * pow(BASE_ZOOM, m_zoomCount);
+    m_plane_size.y = BASE_HEIGHT * m_aspectRatio * pow(BASE_ZOOM, m_zoomCount);
     m_state = State::CALCULATING;
 }
-
 
 void ComplexPlane::setCenter(Vector2i mousePixel)
 {
@@ -62,7 +63,6 @@ void ComplexPlane::loadText(Text& text)
 
     text.setString(ss.str());
 }
-
 
 void ComplexPlane::updateRender()
 {
@@ -87,11 +87,10 @@ void ComplexPlane::updateRender()
     m_state = State::DISPLAYING;
 }
 
-
 size_t ComplexPlane::countIterations(Vector2f coord)
 {
-    std::complex <double> c(coord.x, coord.y);
-    std::complex <double> z(0.0, 0.0);
+    std::complex<double> c(coord.x, coord.y);
+    std::complex<double> z(0.0, 0.0);
 
     size_t iter = 0;
 
@@ -106,12 +105,12 @@ size_t ComplexPlane::countIterations(Vector2f coord)
 
 void ComplexPlane::iterationsToRGB(size_t count, Uint8& r, Uint8& g, Uint8& b)
 {
-    //Color	RGB
-//Orange	(255, 128, 0)
-//Yellow	(255, 255, 0)
-//Red	(255, 0, 0)
-//White	(255, 255, 255)
-//Pink	(255, 105, 180)
+    //Color    RGB
+    //Orange   (255, 128, 0)
+    //Yellow   (255, 255, 0)
+    //Red      (255, 0, 0)
+    //White    (255, 255, 255)
+    //Pink     (255, 105, 180)
 
     if (count >= MAX_ITER)
     {
@@ -121,45 +120,39 @@ void ComplexPlane::iterationsToRGB(size_t count, Uint8& r, Uint8& g, Uint8& b)
 
     float t = float(count) / float(MAX_ITER);
 
-    sf::Color c1, c2;
+    Color c1, c2;
 
-    // Region 1: ORANGE → YELLOW (0.0 - 0.20)
     if (t < 0.20f) {
-        c1 = sf::Color(255, 128, 0);  // orange
-        c2 = sf::Color(255, 255, 0);  // yellow
+        c1 = Color(255, 128, 0);  // orange
+        c2 = Color(255, 255, 0);  // yellow
         t = t / 0.20f;
     }
-    // Region 2: YELLOW → RED (0.20 - 0.40)
     else if (t < 0.40f) {
-        c1 = sf::Color(255, 255, 0);  // yellow
-        c2 = sf::Color(255, 0, 0);  // red
+        c1 = Color(255, 255, 0);  // yellow
+        c2 = Color(255, 0, 0);    // red
         t = (t - 0.20f) / 0.20f;
     }
-    // Region 3: RED → WHITE (0.40 - 0.60)
     else if (t < 0.60f) {
-        c1 = sf::Color(255, 0, 0);  // red
-        c2 = sf::Color(255, 255, 255);  // white
+        c1 = Color(255, 0, 0);    // red
+        c2 = Color(255, 255, 255);// white
         t = (t - 0.40f) / 0.20f;
     }
-    // Region 4: WHITE → PINK (0.60 - 0.90)
     else if (t < 0.90f) {
-        c1 = sf::Color(255, 255, 255);  // white
-        c2 = sf::Color(255, 105, 180);  // pink
+        c1 = Color(255, 255, 255);// white
+        c2 = Color(255, 105, 180);// pink
         t = (t - 0.60f) / 0.30f;
     }
     else {
-        // Region 5: bright pink near escape
         r = 255;
         g = 105;
         b = 180;
         return;
     }
 
-    r = c1.r + t * (c2.r - c1.r);
-    g = c1.g + t * (c2.g - c1.g);
-    b = c1.b + t * (c2.b - c1.b);
+    r = Uint8(c1.r + t * (c2.r - c1.r));
+    g = Uint8(c1.g + t * (c2.g - c1.g));
+    b = Uint8(c1.b + t * (c2.b - c1.b));
 }
-
 
 Vector2f ComplexPlane::mapPixelToCoords(Vector2i mousePixel)
 {
@@ -170,5 +163,5 @@ Vector2f ComplexPlane::mapPixelToCoords(Vector2i mousePixel)
 
     float real = ((mousePixel.x) / float(m_pixelWidth)) * (right - left) + left;
     float imag = ((m_pixelHeight - mousePixel.y) / float(m_pixelHeight)) * (top - bottom) + bottom;
-    return { real, img };
+    return { real, imag };
 }
